@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+
+<body>
+    <div
+        class="flex h-screen w-screen flex-col items-center justify-center space-y-3 bg-gradient-to-tr from-blue-400 to-red-300 px-4">
+        <!-- Logo -->
+        <div class="text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4">
+                </path>
+            </svg>
+        </div>
+        <!-- Logo end-->
+        <!-- List box -->
+        <div class="w-full max-w-xl rounded bg-white p-8">
+            <!-- Add task -->
+            <form class="flex" onsubmit="addTodo(event)">
+                <input id="todoinput" type="text"
+                    class="block w-full rounded-l-md border border-gray-300 px-4 py-1.5 focus:border-gray-400 focus:outline-none"
+                    placeholder="Add task to your list" />
+                <button type="submit"
+                    class="rounded-r-md border border-l-0 border-gray-300 bg-indigo-500 px-6 py-1 text-white hover:bg-indigo-600">Add</button>
+            </form>
+            <!-- fill input -->
+            <p id="fill" class="mt-2 hidden">Please fill input box</p>
+            <!-- Add task end-->
+            <!-- search -->
+            <div class="mt-4 flex items-center justify-between" id="filterInput">
+                <h3 class="text-gray-600">Your tasks:</h3>
+                <div class="flex h-8 items-center">
+                    <!-- Search icon -->
+                    <button id="searchBtn" onclick="showSearchbox()">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </button>
+                    <!-- After clicking search icon -->
+                    <div id="searchBox" class="relative hidden">
+                        <input id="searchinput" onkeyup="searchFilter()" type="text"
+                            class="block w-56 rounded-md border border-gray-300 px-7 py-1 text-sm"
+                            placeholder="search your task" />
+                        <span class="absolute left-1.5 top-2 text-gray-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </span>
+                        <button onclick="closeSearchBox()"
+                            class="absolute right-1.5 top-2 text-gray-400 hover:text-gray-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+
+                    </div>
+                    <!-- Search end -->
+                </div>
+            </div>
+            <!-- search end -->
+            <!-- Tasks List -->
+            <div id="todoWrapper" class="mt-5 space-y-1">
+
+            </div>
+            <!-- Tasks List end -->
+            <!-- Clear all -->
+            <div class="mt-4">
+                <button onclick="clearAll()"
+                    class="rounded bg-indigo-500 px-6 py-1.5 text-sm text-white hover:bg-indigo-600">Clear all</button>
+            </div>
+            <!-- Clear all end -->
+        </div>
+        <!-- List box end -->
+    </div>
+
+    <script>
+        const todoWrapper = document.getElementById('todoWrapper')
+        const todoInput = document.getElementById('todoinput')
+        const fillInput = document.getElementById('fill')
+        const filterInput = document.getElementById('filterInput')
+
+        const searchBox = document.getElementById('searchBox')
+        const searchBtn = document.getElementById('searchBtn')
+        const searchinput = document.getElementById('searchinput')
+
+        // const searchinput = document.getElementById('searchinput')
+        // const mylist = document.getElementById('mylist')
+
+        let todoLists = [{
+            name: 'task 1',
+            isComplete: false
+        }]
+        let searchLists = []
+
+
+        function rendarTodos() {
+            let result = ''
+            if (searchinput.value != '') {
+                searchLists.forEach((todo, index) => {
+                    result += `<div class="group flex items-center rounded bg-indigo-50 px-3 py-1.5 hover:bg-indigo-100">
+                                <input onchange="statusUpdate(${index})" type="checkbox" class="h-4 w-4 cursor-pointer rounded text-indigo-500" ${todo.isComplete ? 'checked' : ''}/>
+                                <span class="ml-3 text-gray-800 ${todo.isComplete ? 'line-through' : ''}">${todo.name}</span>
+                                <button onclick="removeTodo(${index})"
+                                    class="ml-auto hidden text-red-500 hover:text-red-600 group-hover:block">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                        </path>
+                                    </svg>
+                                </button>
+                            </div>`
+                })
+            } else {
+                todoLists.forEach((todo, index) => {
+                    result += `<div class="group flex items-center rounded bg-indigo-50 px-3 py-1.5 hover:bg-indigo-100">
+                                <input onchange="statusUpdate(${index})" type="checkbox" class="h-4 w-4 cursor-pointer rounded text-indigo-500" ${todo.isComplete ? 'checked' : ''}/>
+                                <span class="ml-3 text-gray-800 ${todo.isComplete ? 'line-through' : ''}">${todo.name}</span>
+                                <button onclick="removeTodo(${index})"
+                                    class="ml-auto hidden text-red-500 hover:text-red-600 group-hover:block">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                        </path>
+                                    </svg>
+                                </button>
+                            </div>`
+                })
+            }
+
+            todoWrapper.innerHTML = result
+
+        }
+
+        rendarTodos()
+
+        // add to do
+        function addTodo(event) {
+            event.preventDefault()
+            let inputValue = todoInput.value;
+
+            if (inputValue) {
+                todoLists.push({
+                    name: todoInput.value,
+                    isComplete: false
+                })
+                todoInput.value = ''
+                fillInput.classList.add('hidden')
+
+            } else {
+                fillInput.classList.remove('hidden')
+            }
+            rendarTodos()
+        }
+
+        // remove todo
+        function removeTodo(index) {
+            todoLists.splice(index, 1)
+            rendarTodos()
+        }
+
+        // clear all
+        function clearAll() {
+            todoLists = []
+            rendarTodos()
+        }
+
+        // status update 
+        function statusUpdate(index) {
+            todoLists[index].isComplete = !todoLists[index].isComplete
+            rendarTodos()
+        }
+
+        // search
+        function showSearchbox() {
+            searchBox.classList.remove('hidden')
+            searchBtn.classList.add('hidden')
+        }
+
+        function closeSearchBox() {
+            searchBox.classList.add('hidden')
+            searchBtn.classList.remove('hidden')
+            searchinput.value = ''
+            rendarTodos()
+        }
+
+        function searchFilter() {
+            searchLists = todoLists.filter(todo => todo.name.search(searchinput.value) != -1)
+            rendarTodos()
+        }
+
+    </script>
+
+
+</body>
+
+</html>
